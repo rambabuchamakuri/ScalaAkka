@@ -1,6 +1,10 @@
 rambabuchamakuri
 
-git --config user.name "rambabuchamakuri"
+git config --global user.name "rambabuchamakuri"
+
+git config --global user.name "rambabuchamakuri" 
+git config --global http.proxy http[s]://proxy.houston.hpecorp.net:8080
+
 
 git clone https://github.com/rambabuchamakuri/ScalaAkka.git
 
