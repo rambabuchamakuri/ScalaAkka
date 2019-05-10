@@ -1,15 +1,17 @@
-rambabuchamakuri
 
-git config --global user.name "rambabuchamakuri"
 
+//create the repository and add the project
 git config --global user.name "rambabuchamakuri" 
 git config --global http.proxy http[s]://proxy.houston.hpecorp.net:8080
-
+git config --global user.email rambabuchamakuri@gmail.com
 
 git clone https://github.com/rambabuchamakuri/ScalaAkka.git
 
-git add *
+git add .
 
-git commit -m "comments:
+git commit -m "comments"
 
-git push origin master
+git remote add origin https://github.com/rambabuchamakuri/ScalaAkka.git
+
+git push -u origin master
+

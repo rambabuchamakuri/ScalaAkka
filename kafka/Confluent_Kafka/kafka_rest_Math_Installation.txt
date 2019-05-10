@@ -1,0 +1,199 @@
+Kafka Rest installation and configuration is available in the below confluent docs.
+https://docs.confluent.io/5.0.0/installation/installing_cp/rhel-centos.htm
+
+Confluent Platform and Apache Kafka Compatibility is available on the below link.
+https://docs.confluent.io/current/installation/versions-interoperability.html
+
+
+
+Install the curl and which tools.
+
+$ sudo yum install curl which
+
+
+Install the Confluent public key, which is used to sign packages in the YUM repository.
+
+$ sudo rpm --import https://packages.confluent.io/rpm/5.0/archive.key
+
+Add the repository to your /etc/yum.repos.d/ directory in a file named confluent.repo.
+$ vi /etc/yum.repos.d/confluent.repo
+
+[Confluent.dist]
+name=Confluent repository (dist)
+baseurl=https://packages.confluent.io/rpm/5.0/7
+gpgcheck=1
+gpgkey=https://packages.confluent.io/rpm/5.0/archive.key
+enabled=1
+
+[Confluent]
+name=Confluent repository
+baseurl=https://packages.confluent.io/rpm/5.0
+gpgcheck=1
+gpgkey=https://packages.confluent.io/rpm/5.0/archive.key
+enabled=1
+
+
+
+sudo yum remove confluent-platform-oss-2.11
+
+$ sudo yum clean all &&  sudo yum install confluent-platform-oss-2.11
+
+  yum -y remove confluent-camus.noarch; 
+  yum -y remove confluent-cli.noarch; 
+  yum -y remove confluent-common.noarch; 
+  yum -y remove confluent-control-center.noarch; 
+  yum -y remove confluent-control-center-fe.noarch; 
+  yum -y remove confluent-kafka-2.11.noarch; 0:1.1.1-1;
+  yum -y remove confluent-kafka-connect-elasticsearch.noarch; 
+  yum -y remove confluent-kafka-connect-hdfs.noarch; 
+  yum -y remove confluent-kafka-connect-jdbc.noarch; 
+  yum -y remove confluent-kafka-connect-jms.noarch; 
+  yum -y remove confluent-kafka-connect-replicator.noarch; 
+  yum -y remove confluent-kafka-connect-s3.noarch; 
+  yum -y remove confluent-kafka-connect-storage-common.noarch; 
+  yum -y remove confluent-kafka-rest.noarch; 
+  yum -y remove confluent-ksql.noarch; 
+  yum -y remove confluent-rebalancer.noarch; 
+  yum -y remove confluent-rest-utils.noarch; 
+  yum -y remove confluent-schema-registry.noarch; 
+  yum -y remove confluent-support-metrics.noarch;
+  
+  
+=========================================================================================================  without Kafka and ZooKeeper ==============
+Steps to configure Kafka and zookeeper if the ambari doesnot have kafka and zookeeper. Please follow below steps
+
+https://docs.confluent.io/4.0.2/installation/installing_cp.html#rhel-and-centos;
+
+$ sudo rpm --import https://packages.confluent.io/rpm/4.0/archive.key;
+
+$ rm /etc/yum.repos.d/confluent.repo;
+
+$ vi /etc/yum.repos.d/confluent.repo;
+
+$ sudo yum clean all &&  sudo yum install confluent-platform-oss-2.11
+
+Configure Confluent Platform
+
+##ZooKeeper  (2 steps are required)
+1. $vim /etc/kafka/zookeeper.properties
+
+dataDir=/mnt/kn/hadoop/zookeeper
+clientPort=2181
+#maxClientCnxns=0
+tickTime=2000
+initLimit=5
+syncLimit=2
+server.1=mathb60-kaf01.ag.purdue.edu:2888:3888myid
+server.2=mathb60-kaf02.ag.purdue.edu:2888:3888
+server.3=mathb60-kaf03.ag.purdue.edu:2888:3888
+autopurge.snapRetainCount=3
+autopurge.purgeInterval=24
+
+# create myid file in each node. give unique number in single quote for each node.
+
+2.  $ vi /mnt/kn/hadoop/zookeeper
+'1'
+
+####  Kafka
+vi /etc/kafka/server.properties
+
+#broker.id=0
+broker.id.generation.enable=true
+zookeeper.connect=mathb60-kaf01.ag.purdue.edu:2181,mathb60-kaf02.ag.purdue.edu:2181,mathb60-kaf03.ag.purdue.edu:2181
+log.dirs=/mnt/kn/kafka-logs
+listeners=PLAINTEXT://mathb60-kaf01.ag.purdue.edu:6667,PLAINTEXT://mathb60-kaf02.ag.purdue.edu:6667,PLAINTEXT://mathb60-kaf03.ag.purdue.edu:6667
+advertised.listeners=PLAINTEXT://mathb60-kaf01.ag.purdue.edu:6667,PLAINTEXT://mathb60-kaf02.ag.purdue.edu:6667,PLAINTEXT://mathb60-kaf03.ag.purdue.edu:6667
+
+
+
+
+
+
+############################################ Only Kafka-Rest Start  ###################################################################
+
+Pre-requisite: Kafka Brokers and Zookeeper should configure in your cluster.
+Update kafka-rest.properties with the kafka-brokers and zookeeper details.
+
+## kafka-rest
+$  vim /etc/kafka-rest/kafka-rest.properties;
+
+id=mathb60-kaf01.ag.purdue.edu-rest
+schema.registry.url=http://mathb60-kaf01.ag.purdue.edu:8081
+zookeeper.connect=mathb60-kaf01.ag.purdue.edu:2181,mathb60-kaf02.ag.purdue.edu:2181,mathb60-kaf03.ag.purdue.edu:2181
+bootstrap.servers=PLAINTEXT://mathb60-kaf01.ag.purdue.edu:6667,PLAINTEXT://mathb60-kaf02.ag.purdue.edu:6667,
+                  PLAINTEXT://mathb60-kaf03.ag.purdue.edu:6667
+consumer.instance.timeout.ms=30000000
+
+
+$ sh /bin/kafka-rest-start /etc/kafka-rest/kafka-rest.properties;
+
+
+$ nohup sh  /bin/kafka-rest-start /etc/kafka-rest/kafka-rest.properties &
+
+Refer : Incase if you use Ranger with Kafka.
+https://community.hortonworks.com/articles/17059/apache-ranger-and-kafka-1.html
+http://i.giphy.com/l4KhWLIBtem1Z6JCo.gif
+https://community.hortonworks.com/questions/91971/kafka-send-message-error.html
+https://github.com/confluentinc/kafka-rest
+
+sh /usr/hdp/current/kafka-broker/bin/kafka-topics.sh --list --zookeeper mathb60-kaf01.ag.purdue.edu:2181,mathb60-kaf02.ag.purdue.edu:2181,mathb60-kaf03.ag.purdue.edu:2181;
+
+
+sh /usr/hdp/current/kafka-broker/bin/kafka-topics.sh  --create --zookeeper  mathb60-kaf01.ag.purdue.edu:2181,mathb60-kaf02.ag.purdue.edu:2181,mathb60-kaf03.ag.purdue.edu:2181  --replication-factor 3 --partitions 1 --topic rambabu_test1;
+
+ sh /usr/hdp/current/kafka-broker/bin/kafka-topics.sh  --describe --zookeeper mathb60-kaf01.ag.purdue.edu:2181,mathb60-kaf02.ag.purdue.edu:2181,mathb60-kaf03.ag.purdue.edu:2181 --topic rambabu_test1;
+
+sh /usr/hdp/current/kafka-broker/bin/kafka-console-producer.sh --broker-list mathb60-kaf01.ag.purdue.edu:6667,mathb60-kaf02.ag.purdue.edu:6667,mathb60-kaf03.ag.purdue.edu:6667  --topic rambabu_test1;
+
+sh /usr/hdp/current/kafka-broker/bin/kafka-console-consumer.sh --bootstrap-server mathb60-kaf01.ag.purdue.edu:6667,mathb60-kaf02.ag.purdue.edu:6667,mathb60-kaf03.ag.purdue.edu:6667  --topic rambabu_test1 --from-beginning;
+
+ sh /usr/hdp/current/kafka-broker/bin/kafka-acls.sh --list --authorizer-properties  zookeeper.connect=mathb60-kaf01.ag.purdue.edu:2181,mathb60-kaf02.ag.purdue.edu:2181,mathb60-kaf03.ag.purdue.edu:2181 --topic  rambabu_test1;
+
+########  Testing 
+curl "http://mathb60-kaf01.ag.purdue.edu:8082/topics";
+
+# Producer
+curl -X POST -H "Content-Type: application/vnd.kafka.json.v2+json" \
+          --data '{"records":[{"value":{"name": "testUser1"}}]}' \
+          "http://mathb60-kaf01.ag.purdue.edu:8082/topics/rambabu_test1";
+
+
+
+
+############################################ Kafka-rest Automatic Startup During Boot  ############################################################
+
+Reference : https://docs.confluent.io/current/installation/installing_cp/scripted-install.html
+
+	Enabling Kafka-rest Automatic Startup During Boot
+During installation, a component service is not enabled for automatic start on boot by default. To enable startup on boot, but not immediately, run this command.
+
+$ systemctl enable confluent-kafka-rest
+
+	Starting Service Immediately
+To start the service now, run this command:
+
+$ systemctl start confluent-kafka-rest
+
+This command will return immediately, although the service has not been started. The actual starting of the service is performed in the background by the systemd daemon.
+
+	Checking Service Status
+To check the status of a service, run this command:
+
+$ systemctl status confluent-kafka-rest
+
+Look for the Active: line, which should say active.
+
+	Stopping a Service
+To stop a service, run this command:
+
+$ systemctl stop confluent-kafka-rest
+
+	Disabling a Service
+To disable a service to prevent it from being automatically started on boot, run this command:
+
+$ systemctl disable confluent-kafka-rest
+
+		  
+
+
+
